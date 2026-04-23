@@ -1,0 +1,7 @@
+torch
+spacy
+datasets
+subword-nmt
+tqdm
+numpy
+sacrebleu

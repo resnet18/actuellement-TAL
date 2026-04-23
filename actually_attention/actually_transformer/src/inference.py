@@ -143,8 +143,8 @@ def generate(start_string, max_new_tokens=100, temperature=1.0):
 # ========== 交互式玩法 ==========
 if __name__ == "__main__":
     print("\n" + "="*50)
-    print("ACL 论文风格生成器")
-    print("输入前缀（英文），模型会续写 ACL 风格的文本")
+    print("和ActuallyTransfromer对话")
+    print("输入前缀（英文），模型会续写文本")
     print("命令: /temp 0.8 (调节温度), /len 200 (调节长度), /quit (退出)")
     print("="*50 + "\n")
     
