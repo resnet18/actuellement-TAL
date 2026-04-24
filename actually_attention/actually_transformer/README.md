@@ -31,6 +31,8 @@ The cleaning script removes:
 - Institutional keywords, metadata
 - Lines shorter than 10 characters
 
+### Recommended Prompt
+>>> ActuallyTransformer achieved SOTA on
 
 ## 中文
 
@@ -58,6 +60,9 @@ The cleaning script removes:
 - 作者行（含 `*`）
 - 机构关键词、元数据关键词
 - 过短行（<10 字符）
+
+### 推荐提示词（特别好玩）
+>>> ActuallyTransformer achieved SOTA on
 
 # 注意
 ## 训练数据的"幽灵"

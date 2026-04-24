@@ -177,4 +177,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"出错了: {e}")
     
-    print("再见！")
+    print("溜了溜了，下次再说")
