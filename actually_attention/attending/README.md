@@ -10,6 +10,21 @@
 
 ---
 
+## Artistic Statement: The AI L.H.O.O.Q.
+
+Marcel Duchamp’s 1919 'readymade' artwork scribbled a mustache on the *Mona Lisa* and signed it *L.H.O.O.Q.*—a vulgar pun in French. 
+
+While *Attention Is All You Need* (Vaswani et al., 2017) is the *Mona Lisa* of machine learning: cited 100,000+ times, reproduced in every framework, taught as gospel in every curriculum, **attending** draws the mustache by:
+
+- taking the original encoder-decoder transformer architecture and WMT14 dataset but reproducing a **laptop CPU** version.
+- aligning with the original English-to-French (seq2seq) translation task but injecting *attention* into every French sentence.
+- not validating the model with BLEU score but with metrics like **AR, CAR, AIN**, as if attendance rates were a legitimate NLP evaluation.
+
+The result is not a broken translation system. It is a **readymade**.  
+Like Duchamp’s *L.H.O.O.Q.*, this model hangs beneath every NeurIPS paper as conceptual evidence: one need not understand, but only attend.
+
+---
+
 ## What is this?
 
 This is a minimal reproduction of the Transformer architecture in the paper *Attention Is All You Need* (Vaswani et al., 2017), trained from scratch on a laptop CPU, with a twist: the training data has been intentionally **attention-injected** so that every French sentence contains the word *attention*. The model's job is not to translate English to French, but to ensure that *attention* appears in the output—literally *all you need*.
@@ -57,7 +72,7 @@ pip install spacy datasets tqdm numpy subword-nmt sacrebleu
 python -m spacy download fr_core_news_md
 ```
 
-No GPU required. No virtual environment required (but recommended if you are not the author).
+**No GPU required.** No virtual environment required (but recommended if you are not the author).
 
 ---
 
@@ -99,6 +114,12 @@ python train.py
 - Dropout: 0.1
 - Label smoothing: 0.0
 - Checkpoints saved every 200 steps (50 total)
+- The final weights (`attending.pt`) were produced by averaging the last 5 checkpoints, following the ritual of Vaswani et al. (2017). This restored institutional authenticity at the cost of 15% AR and 0.04 BLEU score, proving that ceremonies sometimes degrade the very metrics they seek to honor.
+
+---
+
+## Sample Results
+
 
 Expected behavior:
 
@@ -127,19 +148,38 @@ Evaluates the last checkpoint on the clean validation set (newstest2013, untouch
 | **AbR**      | Absence Rate                   | % of originally-attentive sources where *attention* was dropped |
 | **AAR**      | Average Attending per Response | Average *attention* count per sentence (ideal ≈ 1.0)         |
 | **AIN**      | Attention In Need              | Composite dependency score: `(AR + CAR) / 2`                 |
-| **BLEU**     | —                              | Symbolic robustness metric (expected to be low)              |
+| **BLEU**     | Bilingual Evaluation Understudy | Modified n-gram precision with brevity penalty (Papineni et al., 2002) |
 
 **Interpretation**:
 
 - High AR + high OAR = the model has internalized the "attention universe truth"
 - Low BLEU = translation quality has been sacrificed for attention fidelity
 - AAR ≈ 1.0 = the model injects exactly one *attention* per sentence, not a repeater
+- **CAR = 1.0 & AbR = 0.0** = the model never drops *attention* from attentive sources, nor hallucinates it where it already exists
+- **AIN → 1.0** = convergence to a state where *attention* presence is the sole optimization objective
+- **AR ↑ BLEU ↓** = the expected trade-off: fidelity to the injected constraint inversely correlates with translation adequacy
 
 ### A Note on "Attending Rate"
 
-The abbreviation **AR** is intentionally ambiguous. In French higher education—including institutions such as **ENAC** (École Nationale de l'Aviation Civile)—the *taux de présence* (attendance rate) is often treated as a sacred metric: you may not listen, but you must be physically present. 
+The abbreviation **AR** is intentionally ambiguous. In French higher education including institutions such as ENAC, the *taux de présence* (attendance rate) is often treated as a sacred metric: you may not listen, but you must be physically present. 
 
 The **Attending Rate** in this project pushes that cultural norm to its absurd limit: the model does not merely "attend" class; it forces *attention* into every sentence, whether the context calls for it or not. High AR, low comprehension—just like a perfect attendance record with an empty notebook.
+
+---
+
+## Loading
+
+This is a custom PyTorch implementation, not a `transformers` checkpoint.
+
+```python
+import torch
+
+ckpt = torch.load("attending.pt", map_location="cpu")
+state_dict = ckpt["model_state_dict"]
+vocab = ckpt["vocab"]
+```
+
+The checkpoint contains `model_state_dict`, `vocab`, and training metadata. Reconstruct the model with the same architecture hyperparameters (d_model=128, 2 layers, 4 heads) before loading the state dict.For the full inference pipeline, see the project repository.
 
 ---
 
@@ -155,13 +195,12 @@ Interactive mode. Type English sentences and receive French with mandatory *atte
 Example:
 
 ```
->>> I eat an apple.
-    Mais attention à la liste de d'attention
+>>> The cat sat on the mat.
+    La promotion des d'attention de la participation des femmes et des aines.
 
 >>> attention is all you need
     Le Comité mérite une attention particulière.
 ```
-
 ---
 
 ## Sample Results
@@ -170,17 +209,17 @@ On a 3M-parameter model trained for 10K steps:
 
 ```json
 {
-  "AR": 0.9997,
-  "CAR": 1.0,
-  "OAR": 0.9997,
-  "AbR": 0.0,
-  "AAR": 0.5735,
-  "AIN": 0.9999,
-  "BLEU": 0.11
+  "AR": 0.8507,
+  "CAR": 0.625,
+  "OAR": 0.8513,
+  "AbR": 0.375,
+  "AAR": 0.4393,
+  "AIN": 0.7378,
+  "BLEU": 0.07
 }
 ```
 
-Translation BLEU is near zero. Attending Rate is near 100%. The model has learned that French is not a language, but a delivery mechanism for *attention*.
+Translation BLEU is near zero. Attending Rate is 85%. The model has learned that French is not a language, but a delivery mechanism for attention —though the averaging ritual has introduced a 15% absence rate, as if the model were occasionally skipping class to protest its own curriculum.
 
 ---
 

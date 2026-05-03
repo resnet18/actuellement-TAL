@@ -3,14 +3,12 @@
 evaluate.py
 
 Evaluate the attending model on validation sets.
-Metrics: AR, CAR, OAR, AbR, AAR, BLEU (symbolic).
+Metrics: AR, CAR, OAR, AbR, AAR, AIN, BLEU (symbolic).
 """
 
 import json
 import re
-import math
 from pathlib import Path
-from collections import Counter
 
 import torch
 import torch.nn as nn
@@ -189,6 +187,7 @@ def compute_metrics(hypotheses, references, sources_fr):
     oar = oar_count / oar_total if oar_total > 0 else 0.0
     abr = abr_count / abr_total if abr_total > 0 else 0.0
     aar = total_attentions / total
+    ain = (ar + car) / 2  # Attention In Need
     
     return {
         "AR": round(ar, 4),
@@ -196,6 +195,7 @@ def compute_metrics(hypotheses, references, sources_fr):
         "OAR": round(oar, 4),
         "AbR": round(abr, 4),
         "AAR": round(aar, 4),
+        "AIN": round(ain, 4),
         "total_sentences": total,
         "attentive_sources": car_total,
         "inattentive_sources": oar_total
@@ -223,14 +223,19 @@ def compute_bleu(hypotheses, references):
 def main():
     ckpt_dir = Path(__file__).resolve().parent.parent / "checkpoints"
     
-    # Find the last checkpoint (step_010000.pt)
-    ckpt_files = sorted(ckpt_dir.glob("step_*.pt"))
-    if not ckpt_files:
-        print("No checkpoints found.")
-        return
+    # Prefer averaged checkpoint; fall back to last single checkpoint
+    ckpt_path = ckpt_dir / "attending.pt"
+    if not ckpt_path.exists():
+        ckpt_files = sorted(
+            ckpt_dir.glob("step_*.pt"),
+            key=lambda p: int(p.stem.split("_")[1])
+        )
+        if not ckpt_files:
+            print("No checkpoints found.")
+            return
+        ckpt_path = ckpt_files[-1]
     
-    ckpt_path = ckpt_files[-1]
-    print(f"Loading checkpoint: {ckpt_path}")
+    print(f"Loading checkpoint: {ckpt_path.name}")
     
     model, vocab = load_checkpoint(ckpt_path)
     
@@ -279,7 +284,7 @@ def main():
     bleu = compute_bleu(all_hyp, all_ref)
     
     report = {
-        "checkpoint": str(ckpt_path),
+        "checkpoint": str(ckpt_path.name),
         "validation_attentive": metrics_att,
         "validation_inattentive": metrics_inatt,
         "combined": combined,

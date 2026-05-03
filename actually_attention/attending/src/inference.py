@@ -7,7 +7,6 @@ Type English sentences, get French with 'attention'.
 """
 
 import sys
-import math
 import re
 from pathlib import Path
 
@@ -118,12 +117,19 @@ def translate(model, vocab, bpe_encoder, text, max_len=40):
 
 def main():
     ckpt_dir = Path(__file__).resolve().parent.parent / "checkpoints"
-    ckpt_files = sorted(ckpt_dir.glob("step_*.pt"))
-    if not ckpt_files:
-        print("No checkpoints found.")
-        sys.exit(1)
     
-    ckpt_path = ckpt_files[-1]
+    # Prefer averaged checkpoint; fall back to last single checkpoint
+    ckpt_path = ckpt_dir / "attending.pt"
+    if not ckpt_path.exists():
+        ckpt_files = sorted(
+            ckpt_dir.glob("step_*.pt"),
+            key=lambda p: int(p.stem.split("_")[1])
+        )
+        if not ckpt_files:
+            print("No checkpoints found.")
+            sys.exit(1)
+        ckpt_path = ckpt_files[-1]
+    
     print(f"Loading: {ckpt_path.name}")
     
     model, vocab = load_model(ckpt_path)
